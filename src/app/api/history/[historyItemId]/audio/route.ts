@@ -28,7 +28,9 @@ export async function GET(
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch audio" },
+      {
+        error: error instanceof Error ? error.message : "Failed to fetch audio",
+      },
       { status: 500 }
     );
   }

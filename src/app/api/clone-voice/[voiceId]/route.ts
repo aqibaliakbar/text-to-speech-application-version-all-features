@@ -23,7 +23,10 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to delete voice" },
+      {
+        error:
+          error instanceof Error ? error.message : "Failed to delete voice",
+      },
       { status: 500 }
     );
   }

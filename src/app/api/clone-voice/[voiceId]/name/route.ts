@@ -24,9 +24,12 @@ export async function POST(
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: "Failed to rename voice" },
+      {
+        error:
+          error instanceof Error ? error.message : "Failed to rename voice",
+      },
       { status: 500 }
     );
   }

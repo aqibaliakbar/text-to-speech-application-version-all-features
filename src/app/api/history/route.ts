@@ -17,7 +17,10 @@ export async function GET() {
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch history" },
+      {
+        error:
+          error instanceof Error ? error.message : "Failed to fetch history",
+      },
       { status: 500 }
     );
   }

@@ -23,8 +23,13 @@ export async function DELETE(
 		return NextResponse.json({ success: true });
 	} catch (error) {
 		return NextResponse.json(
-			{ error: "Failed to delete history item" },
-			{ status: 500 }
-		);
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete history item",
+      },
+      { status: 500 }
+    );
 	}
 }

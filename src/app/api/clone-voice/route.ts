@@ -56,10 +56,12 @@ export async function POST(request: Request) {
       success: true,
       message: "Voice cloned successfully",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Voice cloning error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to clone voice" },
+      {
+        error: error instanceof Error ? error.message : "Failed to clone voice",
+      },
       { status: 500 }
     );
   }

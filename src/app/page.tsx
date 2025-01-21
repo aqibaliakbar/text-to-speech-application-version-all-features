@@ -8,8 +8,8 @@ import { Slider } from '@/components/ui/slider'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
-  Volume2, Play, Square, Loader2, RefreshCcw, Wand2, History, 
-  Download, Clock, Settings, Save, Mic, RotateCcw, VolumeX, 
+  Volume2, Play, Square, Loader2,  Wand2, History, 
+  Download,  Save, Mic, RotateCcw, VolumeX, 
   Volume1, Book, Upload, 
   MicVocal
 } from 'lucide-react'
@@ -26,7 +26,6 @@ import { exportAudioBlob } from '@/utils/audioUtils'
 import { useToast } from '@/hooks/use-toast'
 import { Switch } from '@/components/ui/switch'
 import HistoryComponent from '@/components/elevenlabs-history'
-import VoiceSelector from '@/components/voice-selector-component'
 import EnhancedVoiceSelector from '@/components/voice-selector-component'
 
 interface Voice {
@@ -65,7 +64,9 @@ interface SavedAudio {
 
 let audioContext: AudioContext | null = null
 let gainNode: GainNode | null = null
-
+interface WebkitWindow {
+  webkitAudioContext?: typeof AudioContext;
+}
 export default function TTSApp() {
   // Core state
   const [text, setText] = useState("");
@@ -95,8 +96,6 @@ export default function TTSApp() {
   const [previousVolume, setPreviousVolume] = useState(volume);
   const [stability, setStability] = useState([0.5]);
   const [similarity, setSimilarity] = useState([0.70]);
-  const [speed, setSpeed] = useState([1]);
-  const [pitch, setPitch] = useState([0]);
   const [style, setStyle] = useState([0]);
   const [speakerBoost, setSpeakerBoost] = useState(true);
 
@@ -123,14 +122,14 @@ export default function TTSApp() {
   const { toast } = useToast();
 
   // Initialize audio context
-  const initAudioContext = () => {
-    if (!audioContext) {
-      audioContext = new (window.AudioContext ||
-        (window as any).webkitAudioContext)();
-      gainNode = audioContext.createGain();
-      gainNode.connect(audioContext.destination);
-    }
-  };
+ const initAudioContext = () => {
+   if (!audioContext) {
+     audioContext = new (window.AudioContext ||
+       (window as WebkitWindow).webkitAudioContext)();
+     gainNode = audioContext.createGain();
+     gainNode.connect(audioContext.destination);
+   }
+ };
 
   // Load history and presets from localStorage
   useEffect(() => {
@@ -268,8 +267,6 @@ export default function TTSApp() {
   const resetSettings = () => {
     setStability([0.5]);
     setSimilarity([0.75]);
-    setSpeed([1]);
-    setPitch([0]);
     setSelectedPreset(null);
     toast({
       title: "Settings Reset",
@@ -555,18 +552,23 @@ export default function TTSApp() {
       });
 
       setIsVoiceDialogOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Voice cloning error:", error);
       if (progressInterval) {
         clearInterval(progressInterval);
       }
       setUploadProgress(0);
-      toast({
-        title: "Error",
-        description:
-          error.message || "Failed to clone voice. Please try again.",
-        variant: "destructive",
-      });
+
+       let errorMessage = "Failed to clone voice. Please try again.";
+       if (error instanceof Error) {
+         errorMessage = error.message;
+       }
+
+     toast({
+       title: "Error",
+       description: errorMessage,
+       variant: "destructive",
+     });
     } finally {
       setIsCloning(false);
       setSelectedFile(null);
